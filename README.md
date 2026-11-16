@@ -64,3 +64,10 @@ This project is open-source. Add a suitable license to define how others can use
 ---
 
 **Made with ❤️ for creators and students.**
+
+
+## 📸 Follow Me on Instagram
+
+Follow me for updates and new projects!
+
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/YOUR_USERNAME/)
