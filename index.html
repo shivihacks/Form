@@ -1,0 +1,551 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI+ Studio</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0d12;color:#eee;font-family:Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.topbar{
+ height:58px;background:#141720;border-bottom:1px solid #292d39;
+ display:flex;align-items:center;justify-content:space-between;
+ padding:0 15px;position:sticky;top:0;z-index:10
+}
+.logo{font-size:23px;font-weight:bold;color:#a78bfa}
+.logo span{color:white}
+.actions{display:flex;gap:7px}
+.btn{border:0;padding:9px 12px;border-radius:7px;background:#292e3c;color:white}
+.btn.primary{background:#7955ed}
+.btn.green{background:#168b62}
+.layout{display:grid;grid-template-columns:185px 1fr 245px;height:calc(100vh - 58px)}
+.sidebar,.inspector{background:#141720;padding:12px;overflow:auto}
+.sidebar{border-right:1px solid #292d39}
+.inspector{border-left:1px solid #292d39}
+.heading{font-size:12px;color:#999;margin:8px 0 13px;font-weight:bold}
+.tool{
+ background:#202532;border:1px solid #343b4b;padding:12px;
+ border-radius:8px;margin-bottom:8px;cursor:grab;
+ font-size:13px;display:flex;align-items:center;gap:9px
+}
+.tool:hover{border-color:#9877ff;background:#29243c}
+.tool span{font-size:19px}
+.workspace{padding:18px;overflow:auto;background:#0b0d12}
+.canvas-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.canvas{
+ min-height:650px;background:#fff;color:#222;border-radius:9px;
+ max-width:850px;margin:auto;padding:28px;position:relative;
+ box-shadow:0 5px 35px #0005
+}
+.canvas.empty:after{
+ content:"यहाँ अपना एलिमेंट Drag & Drop करें";
+ position:absolute;top:48%;left:0;width:100%;text-align:center;
+ color:#aaa;pointer-events:none;font-size:15px
+}
+.element{position:relative;padding:10px;margin:5px 0;border:1px solid transparent;border-radius:5px;cursor:pointer}
+.element:hover{border:1px dashed #9274ff}
+.element.selected{border:2px solid #865cf5;background:#f5f0ff}
+.element button{border:0;padding:10px 18px;border-radius:6px;background:#7855e9;color:white}
+.element input,.element textarea,.element select{
+ width:100%;padding:11px;border:1px solid #ccc;border-radius:6px;
+ background:white;color:#222
+}
+.element textarea{min-height:75px}
+.element h1,.element h2,.element h3,.element p{margin:5px 0}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;color:#aaa;margin-bottom:6px}
+.field input,.field select,.field textarea{
+ width:100%;padding:9px;border-radius:6px;border:1px solid #353b49;
+ background:#202532;color:white;outline:none
+}
+.field input[type=color]{height:38px;padding:3px}
+.field textarea{min-height:90px;resize:vertical}
+.small-btn{width:100%;padding:9px;border:0;border-radius:6px;background:#292e3b;color:white;margin-top:5px}
+.small-btn.danger{background:#7c2936}
+.tabs{display:flex;gap:5px;margin-bottom:13px}
+.tab{flex:1;padding:9px 3px;border:0;background:#222735;color:#aaa;border-radius:5px}
+.tab.active{background:#7653e9;color:white}
+.hidden{display:none!important}
+#codePanel{
+ position:fixed;inset:58px 0 0;background:#0c0e15;z-index:20;
+ display:none;padding:15px;flex-direction:column
+}
+#codePanel textarea{
+ flex:1;background:#111722;color:#a8edc1;padding:15px;
+ border:1px solid #444;border-radius:8px;font-family:monospace;
+ font-size:13px;resize:none
+}
+.status{font-size:11px;color:#888;margin-top:12px}
+@media(max-width:760px){
+ .layout{grid-template-columns:105px 1fr;height:calc(100vh - 58px)}
+ .sidebar{padding:7px}
+ .inspector{position:fixed;right:0;top:58px;bottom:0;width:220px;z-index:15;box-shadow:-5px 0 20px #0008}
+ .tool{padding:9px 5px;font-size:11px;flex-direction:column;text-align:center}
+ .workspace{padding:9px}
+ .canvas{padding:13px;min-height:550px}
+ .logo{font-size:19px}
+ .btn{padding:8px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+ <div class="logo">AI<span>+</span> <small style="font-size:11px;color:#aaa">STUDIO</small></div>
+ <div class="actions">
+  <button class="btn" onclick="newProject()">New</button>
+  <button class="btn" onclick="saveProject()">Save</button>
+  <button class="btn" onclick="openCode()">JS</button>
+  <button class="btn green" onclick="preview()">Preview</button>
+  <button class="btn primary" onclick="exportHTML()">Export</button>
+ </div>
+</header>
+
+<div class="layout">
+
+<!-- LEFT TOOLBOX -->
+<aside class="sidebar">
+ <div class="heading">ELEMENTS</div>
+
+ <div class="tool" draggable="true" data-type="heading"><span>🔠</span>Heading</div>
+ <div class="tool" draggable="true" data-type="text"><span>📝</span>Text</div>
+ <div class="tool" draggable="true" data-type="input"><span>⌨️</span>Input</div>
+ <div class="tool" draggable="true" data-type="textarea"><span>📄</span>Textarea</div>
+ <div class="tool" draggable="true" data-type="button"><span>🔘</span>Button</div>
+ <div class="tool" draggable="true" data-type="select"><span>📋</span>Select</div>
+ <div class="tool" draggable="true" data-type="checkbox"><span>☑️</span>Checkbox</div>
+ <div class="tool" draggable="true" data-type="divider"><span>➖</span>Divider</div>
+ <div class="tool" draggable="true" data-type="image"><span>🖼️</span>Image</div>
+ <div class="tool" draggable="true" data-type="form"><span>📑</span>Form</div>
+
+ <div class="heading" style="margin-top:25px">PROJECT</div>
+ <button class="small-btn" onclick="addElement('heading')">+ Add Heading</button>
+ <button class="small-btn" onclick="addElement('button')">+ Add Button</button>
+ <div class="status">AI+ Studio v1.0</div>
+</aside>
+
+<!-- CENTER CANVAS -->
+<main class="workspace">
+ <div class="canvas-head">
+  <b>Design Canvas</b>
+  <span style="font-size:12px;color:#888">Drag elements here ↓</span>
+ </div>
+ <div class="canvas empty" id="canvas" onclick="canvasClick(event)"></div>
+</main>
+
+<!-- RIGHT INSPECTOR -->
+<aside class="inspector" id="inspector">
+ <div class="tabs">
+  <button class="tab active" onclick="showTab('properties',this)">Design</button>
+  <button class="tab" onclick="showTab('settings',this)">Settings</button>
+ </div>
+
+ <section id="properties">
+  <div class="heading">ELEMENT PROPERTIES</div>
+  <div id="noSelection" style="font-size:12px;color:#888">
+   Canvas में किसी एलिमेंट को चुनो।
+  </div>
+  <div id="editor" class="hidden">
+   <div class="field">
+    <label>Text / Label</label>
+    <input id="propText" oninput="updateProp('text',this.value)">
+   </div>
+   <div class="field">
+    <label>Placeholder</label>
+    <input id="propPlaceholder" oninput="updateProp('placeholder',this.value)">
+   </div>
+   <div class="field">
+    <label>Background Color</label>
+    <input type="color" id="propBg" oninput="updateProp('background',this.value)">
+   </div>
+   <div class="field">
+    <label>Text Color</label>
+    <input type="color" id="propColor" oninput="updateProp('color',this.value)">
+   </div>
+   <div class="field">
+    <label>Font Size</label>
+    <input type="number" id="propSize" min="8" max="100" oninput="updateProp('fontSize',this.value)">
+   </div>
+   <div class="field">
+    <label>Width</label>
+    <select id="propWidth" onchange="updateProp('width',this.value)">
+     <option value="100%">100%</option>
+     <option value="75%">75%</option>
+     <option value="50%">50%</option>
+     <option value="25%">25%</option>
+     <option value="auto">Auto</option>
+    </select>
+   </div>
+   <div class="field">
+    <label>Border Radius</label>
+    <input type="number" id="propRadius" min="0" max="100" oninput="updateProp('radius',this.value)">
+   </div>
+   <div class="field">
+    <label>Animation</label>
+    <select id="propAnimation" onchange="updateProp('animation',this.value)">
+     <option value="none">None</option>
+     <option value="fade">Fade In</option>
+     <option value="slide">Slide Up</option>
+     <option value="bounce">Bounce</option>
+     <option value="pulse">Pulse</option>
+     <option value="rotate">Rotate</option>
+    </select>
+   </div>
+   <div class="field">
+    <label>Required</label>
+    <input type="checkbox" id="propRequired" onchange="updateProp('required',this.checked)">
+   </div>
+   <button class="small-btn" onclick="duplicateElement()">Duplicate Element</button>
+   <button class="small-btn danger" onclick="deleteElement()">Delete Element</button>
+  </div>
+ </section>
+
+ <section id="settings" class="hidden">
+  <div class="heading">PAGE SETTINGS</div>
+  <div class="field">
+   <label>Page Background</label>
+   <input type="color" id="pageBg" value="#ffffff" onchange="canvas.style.background=this.value">
+  </div>
+  <div class="field">
+   <label>Page Width</label>
+   <select onchange="canvas.style.maxWidth=this.value">
+    <option value="850px">850px</option>
+    <option value="100%">Full Width</option>
+    <option value="650px">650px</option>
+    <option value="500px">500px</option>
+   </select>
+  </div>
+  <button class="small-btn" onclick="clearCanvas()">Clear Canvas</button>
+ </section>
+</aside>
+</div>
+
+<!-- JAVASCRIPT EDITOR -->
+<div id="codePanel">
+ <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+  <b>AI+ Script Editor</b>
+  <button class="btn" onclick="closeCode()">Close ✕</button>
+ </div>
+ <p style="color:#aaa;font-size:12px">
+  यहाँ अपनी JavaScript लिखो। Script Preview के sandbox में चलेगी।
+ </p>
+ <textarea id="customJS" spellcheck="false"
+ placeholder="// अपना JavaScript code यहाँ लिखें&#10;document.body.style.background = '#eeeeee';"></textarea>
+ <button class="btn primary" style="margin-top:10px" onclick="runScript()">Save Script</button>
+</div>
+
+<script>
+const canvas=document.getElementById('canvas');
+let selected=null;
+let elements=[];
+let customScript='';
+
+const animations={
+ fade:'@keyframes fade{from{opacity:0}to{opacity:1}}',
+ slide:'@keyframes slide{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}',
+ bounce:'@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}',
+ pulse:'@keyframes pulse{50%{transform:scale(1.06)}}',
+ rotate:'@keyframes rotate{to{transform:rotate(360deg)}}'
+};
+
+function makeElement(type){
+ const id='el_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+ const defaults={
+  heading:{text:'Your Heading',fontSize:28},
+  text:{text:'Write your text here',fontSize:16},
+  input:{text:'Input Field',placeholder:'Enter your answer',fontSize:15},
+  textarea:{text:'Message',placeholder:'Write something...',fontSize:15},
+  button:{text:'Click Me',fontSize:15,background:'#7855e9',color:'#ffffff'},
+  select:{text:'Select Option',fontSize:15},
+  checkbox:{text:'Accept Terms & Conditions',fontSize:15},
+  divider:{text:'',fontSize:16},
+  image:{text:'',placeholder:'https://example.com/image.jpg'},
+  form:{text:'My Form',fontSize:20}
+ };
+ return {
+  id,type,...(defaults[type]||{}),
+  background:'transparent',color:'#222222',
+  width:'100%',radius:6,animation:'none',required:false
+ };
+}
+
+function addElement(type){
+ const item=makeElement(type);
+ elements.push(item);
+ render();
+ selectElement(item.id);
+}
+
+document.querySelectorAll('.tool').forEach(tool=>{
+ tool.addEventListener('dragstart',e=>{
+  e.dataTransfer.setData('type',tool.dataset.type);
+ });
+ tool.addEventListener('click',()=>{
+  addElement(tool.dataset.type);
+ });
+});
+
+canvas.addEventListener('dragover',e=>e.preventDefault());
+canvas.addEventListener('drop',e=>{
+ e.preventDefault();
+ const type=e.dataTransfer.getData('type');
+ if(type)addElement(type);
+});
+
+function render(){
+ canvas.innerHTML='';
+ canvas.classList.toggle('empty',elements.length===0);
+ elements.forEach(item=>{
+  const wrap=document.createElement('div');
+  wrap.className='element'+(selected===item.id?' selected':'');
+  wrap.dataset.id=item.id;
+  wrap.style.width=item.width;
+  wrap.style.background=item.background;
+  wrap.style.color=item.color;
+  wrap.style.borderRadius=item.radius+'px';
+  wrap.style.fontSize=item.fontSize+'px';
+
+  if(item.animation!=='none'){
+   wrap.style.animation=item.animation+' 1s ease';
+  }
+
+  let node;
+  switch(item.type){
+   case 'heading':
+    node=document.createElement('h2');node.textContent=item.text;break;
+   case 'text':
+    node=document.createElement('p');node.textContent=item.text;break;
+   case 'input':
+    node=document.createElement('input');
+    node.placeholder=item.placeholder||item.text;
+    node.required=item.required;break;
+   case 'textarea':
+    node=document.createElement('textarea');
+    node.placeholder=item.placeholder;
+    node.required=item.required;break;
+   case 'button':
+    node=document.createElement('button');node.textContent=item.text;break;
+   case 'select':
+    node=document.createElement('select');
+    ['Select Option','Option 1','Option 2','Option 3'].forEach(t=>{
+     let o=document.createElement('option');o.textContent=t;node.appendChild(o);
+    });break;
+   case 'checkbox':
+    node=document.createElement('label');
+    let cb=document.createElement('input');cb.type='checkbox';cb.required=item.required;
+    node.append(cb,document.createTextNode(' '+item.text));break;
+   case 'divider':
+    node=document.createElement('hr');break;
+   case 'image':
+    node=document.createElement('img');
+    node.src=item.placeholder||'';
+    node.alt='Image';
+    node.style.maxWidth='100%';
+    break;
+   case 'form':
+    node=document.createElement('form');
+    node.innerHTML='<h2></h2>';
+    node.querySelector('h2').textContent=item.text;
+    break;
+  }
+
+  if(node){
+   if(item.type==='button'){
+    node.style.background=item.background==='transparent'?'#7855e9':item.background;
+    node.style.color=item.color;
+   }
+   wrap.appendChild(node);
+  }
+
+  wrap.addEventListener('click',e=>{
+   e.stopPropagation();selectElement(item.id);
+  });
+
+  canvas.appendChild(wrap);
+ });
+}
+
+function selectElement(id){
+ selected=id;
+ render();
+ const item=elements.find(x=>x.id===id);
+ if(!item)return;
+ document.getElementById('noSelection').classList.add('hidden');
+ document.getElementById('editor').classList.remove('hidden');
+
+ setVal('propText',item.text||'');
+ setVal('propPlaceholder',item.placeholder||'');
+ setVal('propBg',validColor(item.background));
+ setVal('propColor',validColor(item.color));
+ setVal('propSize',item.fontSize||16);
+ setVal('propWidth',item.width||'100%');
+ setVal('propRadius',item.radius||0);
+ setVal('propAnimation',item.animation||'none');
+ document.getElementById('propRequired').checked=!!item.required;
+}
+
+function validColor(c){
+ if(!c||c==='transparent')return '#ffffff';
+ return c;
+}
+function setVal(id,v){document.getElementById(id).value=v}
+
+function updateProp(key,value){
+ const item=elements.find(x=>x.id===selected);
+ if(!item)return;
+ item[key]=key==='fontSize'||key==='radius'?Number(value):value;
+ render();
+}
+
+function deleteElement(){
+ elements=elements.filter(x=>x.id!==selected);
+ selected=null;
+ render();
+ document.getElementById('editor').classList.add('hidden');
+ document.getElementById('noSelection').classList.remove('hidden');
+}
+
+function duplicateElement(){
+ const item=elements.find(x=>x.id===selected);
+ if(!item)return;
+ const copy={...item,id:'el_'+Date.now()};
+ elements.push(copy);
+ render();
+ selectElement(copy.id);
+}
+
+function canvasClick(e){
+ if(e.target===canvas){
+  selected=null;render();
+  document.getElementById('editor').classList.add('hidden');
+  document.getElementById('noSelection').classList.remove('hidden');
+ }
+}
+
+function clearCanvas(){
+ if(confirm('क्या सभी एलिमेंट हटाने हैं?')){
+  elements=[];selected=null;render();
+  document.getElementById('editor').classList.add('hidden');
+  document.getElementById('noSelection').classList.remove('hidden');
+ }
+}
+
+function showTab(id,btn){
+ document.getElementById('properties').classList.toggle('hidden',id!=='properties');
+ document.getElementById('settings').classList.toggle('hidden',id!=='settings');
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+ btn.classList.add('active');
+}
+
+function openCode(){
+ document.getElementById('codePanel').style.display='flex';
+ document.getElementById('customJS').value=customScript;
+}
+function closeCode(){
+ document.getElementById('codePanel').style.display='none';
+}
+function runScript(){
+ customScript=document.getElementById('customJS').value;
+ alert('Script saved! Preview में चलाने के लिए Preview दबाएँ।');
+ closeCode();
+}
+
+function getHTML(){
+ const bg=document.getElementById('pageBg').value;
+ let body='';
+
+ elements.forEach(item=>{
+  let content='';
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+  switch(item.type){
+   case 'heading':content='<h2>'+esc(item.text)+'</h2>';break;
+   case 'text':content='<p>'+esc(item.text)+'</p>';break;
+   case 'input':content='<input placeholder="'+esc(item.placeholder)+'" '+(item.required?'required':'')+'>';break;
+   case 'textarea':content='<textarea placeholder="'+esc(item.placeholder)+'" '+(item.required?'required':'')+'></textarea>';break;
+   case 'button':content='<button type="button">'+esc(item.text)+'</button>';break;
+   case 'select':content='<select><option>Select Option</option><option>Option 1</option><option>Option 2</option><option>Option 3</option></select>';break;
+   case 'checkbox':content='<label><input type="checkbox" '+(item.required?'required':'')+'> '+esc(item.text)+'</label>';break;
+   case 'divider':content='<hr>';break;
+   case 'image':content='<img src="'+esc(item.placeholder)+'" style="max-width:100%">';break;
+   case 'form':content='<h2>'+esc(item.text)+'</h2>';break;
+  }
+  const animation=item.animation==='none'?'':'animation:'+item.animation+' 1s ease;';
+  const style='width:'+item.width+';background:'+item.background+';color:'+item.color+';font-size:'+item.fontSize+'px;border-radius:'+item.radius+'px;'+animation;
+  body+='<div class="element" style="'+style+'">'+content+'</div>';
+ });
+
+ return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My AI+ Website</title>
+<style>
+body{margin:0;padding:25px;font-family:Arial;background:${bg};color:#222}
+.element{padding:10px;margin:6px 0}
+input,textarea,select{width:100%;max-width:100%;padding:11px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
+button{padding:11px 20px;background:#7855e9;color:white;border:0;border-radius:6px;cursor:pointer}
+${Object.values(animations).join('\n')}
+</style>
+</head>
+<body>
+${body}
+<script>
+${customScript.replace(/<\/script/gi,'<\\/script')}
+<\/script>
+</body>
+</html>`;
+}
+
+function preview(){
+ const win=window.open('','_blank');
+ if(!win){alert('Preview खोलने के लिए popup permission दें।');return;}
+ win.document.open();
+ win.document.write(getHTML());
+ win.document.close();
+}
+
+function exportHTML(){
+ const file=new Blob([getHTML()],{type:'text/html'});
+ const url=URL.createObjectURL(file);
+ const a=document.createElement('a');
+ a.href=url;a.download='AI-Plus-Website.html';a.click();
+ URL.revokeObjectURL(url);
+}
+
+function saveProject(){
+ const project={elements,customScript,pageBg:document.getElementById('pageBg').value};
+ localStorage.setItem('aiplus_project',JSON.stringify(project));
+ alert('Project saved on this device!');
+}
+
+function newProject(){
+ if(!confirm('नया प्रोजेक्ट बनाना है?'))return;
+ elements=[];selected=null;customScript='';
+ document.getElementById('customJS').value='';
+ render();
+ document.getElementById('editor').classList.add('hidden');
+ document.getElementById('noSelection').classList.remove('hidden');
+}
+
+function loadProject(){
+ try{
+  const data=JSON.parse(localStorage.getItem('aiplus_project'));
+  if(!data)return;
+  elements=Array.isArray(data.elements)?data.elements:[];
+  customScript=typeof data.customScript==='string'?data.customScript:'';
+  if(data.pageBg)document.getElementById('pageBg').value=data.pageBg;
+  canvas.style.background=data.pageBg||'#ffffff';
+  render();
+ }catch(e){console.error(e)}
+}
+
+loadProject();
+</script>
+</body>
+</html>
