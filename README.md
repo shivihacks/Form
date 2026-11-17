@@ -79,3 +79,11 @@ Subscribe to my YouTube channel for tutorials, updates and new projects!
 [![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=for-the-badge&logo=youtube)](https://youtube.com/@shivayt55)
 
 **Channel:** [@shivayt55](https://youtube.com/@shivayt55)
+
+## 💀Join My Telegram Channel
+
+Join our Telegram channel for updates, announcements and new projects!
+
+[![Telegram](https://img.shields.io/badge/Telegram-Join%20Channel-blue?style=for-the-badge&logo=telegram)](YOUR_TELEGRAM_LINK)
+
+**Telegram:** [Join Channel](t.me/codetoolnest)
