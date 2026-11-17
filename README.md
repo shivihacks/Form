@@ -71,3 +71,11 @@ This project is open-source. Add a suitable license to define how others can use
 Follow me for updates and new projects!
 
 [![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/YOUR_USERNAME/)
+
+## 📺 My YouTube Channel
+
+Subscribe to my YouTube channel for tutorials, updates and new projects!
+
+[![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=for-the-badge&logo=youtube)](https://youtube.com/@shivayt55)
+
+**Channel:** [@shivayt55](https://youtube.com/@shivayt55)
